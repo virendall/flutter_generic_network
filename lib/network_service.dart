@@ -7,10 +7,10 @@ import 'network_request.dart';
 abstract class NetworkService {
   Future<Either<T, NetworkException>> execute<T>({
     required NetworkRequest request,
-    required T Function({
+    required T Function(
       dynamic response,
       int? statusCode,
-    }) parser,
+    ) parser,
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   });
@@ -25,7 +25,7 @@ class _NetworkServiceFallback implements NetworkService {
   @override
   Future<Either<T, NetworkException>> execute<T>(
       {required NetworkRequest request,
-      required T Function({dynamic response, int? statusCode}) parser,
+      required T Function(dynamic response, int? statusCode) parser,
       ProgressCallback? onSendProgress,
       ProgressCallback? onReceiveProgress}) async {
     Either<T, NetworkException> result = await primary.execute(

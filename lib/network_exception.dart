@@ -1,11 +1,12 @@
 class NetworkException implements Exception {
-  int errorCode;
-  String errorMessage;
+  int code;
+  String? message;
+  dynamic data;
 
-  NetworkException({required this.errorCode, required this.errorMessage});
+  NetworkException({required this.code, required this.message, this.data});
 
   @override
   String toString() {
-    return errorMessage;
+    return "$code : $message";
   }
 }

@@ -37,8 +37,8 @@ class NetworkClient implements NetworkService {
     );
   }
 
-  NetworkClient enableLogging() {
-    _dio.interceptors.add(_Logging());
+  NetworkClient logging({bool enable = false}) {
+    if (enable) _dio.interceptors.add(_Logging());
     return this;
   }
 
@@ -60,7 +60,7 @@ class NetworkClient implements NetworkService {
   @override
   Future<Either<T, NetworkException>> execute<T>({
     required NetworkRequest request,
-    required T Function({dynamic response, int? statusCode}) parser,
+    required T Function(dynamic response, int? statusCode) parser,
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
@@ -77,14 +77,19 @@ class NetworkClient implements NetworkService {
         _executeRequest<T>,
         req,
       );
-    } catch (error) {
-      final errorText = error.toString();
-      var errorCode = -1;
-      if (error is DioException) {
-        errorCode = error.response?.statusCode ?? errorCode;
-      }
+    } on DioException catch (error) {
+      final errorCode = error.response?.statusCode ?? -1;
       return Right(
-          NetworkException(errorCode: errorCode, errorMessage: errorText));
+        NetworkException(
+          code: errorCode,
+          message: error.message,
+          data: error.response?.data,
+        ),
+      );
+    } catch (error) {
+      return Right(
+        NetworkException(code: -1, message: error.toString()),
+      );
     }
   }
 
@@ -106,8 +111,7 @@ class NetworkClient implements NetworkService {
       onSendProgress: request.onSendProgress,
       onReceiveProgress: request.onReceiveProgress,
     );
-    final T = request.parser(
-        response: response.data, statusCode: response.statusCode);
+    final T = request.parser(response.data, response.statusCode);
     return Left(T);
   }
 }
@@ -123,7 +127,7 @@ class _PreparedURLRequest<T> {
   );
 
   final NetworkRequest request;
-  final T Function({dynamic response, int? statusCode}) parser;
+  final T Function(dynamic response, int? statusCode) parser;
   final Dio dio;
   final Map<String, dynamic> headers;
   final ProgressCallback? onSendProgress;
